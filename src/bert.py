@@ -2,8 +2,7 @@
 
 from typing import List
 
-from fastai.text import BaseTokenizer
-from transformers import BertTokenizer
+from transformers import BertConfig, BertModel BertTokenizer
 
 class FastAIBertTokenizer(BaseTokenizer):
     
@@ -16,3 +15,6 @@ class FastAIBertTokenizer(BaseTokenizer):
     
     def tokenizer(self, t:str) -> List[str]:
         return ["[CLS]"] + self._pretrained_tokenizer.tokenize(t)[:self.max_seq_len - 2] + ["[SEP]"]
+
+
+
