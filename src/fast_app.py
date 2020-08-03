@@ -5,16 +5,14 @@ from stemming.porter2 import stem
 import pathlib
 import random
 from lxml import etree
-from transformers import pipeline
 import requests
-
+from hugs import SUMMARIZER
 
 
 etds = pathlib.Path("../../tmp/etds/")
 etd_paths = [etd for etd in etds.iterdir()]
 ns = { "mods": "http://www.loc.gov/mods/v3" }
 
-summarizer = pipeline("summarization")
 
 @st.cache
 def load_fast(csv_location: str)-> pd.DataFrame:
@@ -34,9 +32,10 @@ def search_fast(term: str, vocab: pd.DataFrame) -> str:
     
 
 def summary(thesis):
-    return summarizer(thesis)
+    return SUMMARIZER(thesis)
 
-st.title("Theses and Dissertations")
+
+st.title("Stanford Theses and Dissertations")
 fast_load_state = st.sidebar.text("Loading FAST...")
 fast_topics = load_fast('../data/topic_uri_label_utf8.csv')
 fast_geo = load_fast('../data/geo_uri_label_utf8.csv')
