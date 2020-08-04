@@ -6,7 +6,7 @@ import pathlib
 import random
 from lxml import etree
 import requests
-from hugs import SUMMARIZER
+from hugs import NER, SUMMARIZER
 
 
 etds = pathlib.Path("../../tmp/etds/")
@@ -32,7 +32,7 @@ def search_fast(term: str, vocab: pd.DataFrame) -> str:
     
 
 def summary(thesis):
-    return SUMMARIZER(thesis)
+    return SUMMARIZER(thesis.read_text())
 
 
 st.title("Stanford Theses and Dissertations")
@@ -42,7 +42,7 @@ fast_geo = load_fast('../data/geo_uri_label_utf8.csv')
 fast_chronology = load_fast('../data/chron_uri_label_utf8.csv')
 fast_load_state.text("Finished loading FAST")
 
-if st.button('Select Thesis'):
+if st.button('Random Thesis'):
     position = random.randint(0, len(etd_paths))
     thesis = etd_paths[position]
     purl_url = f"https://purl.stanford.edu/{thesis.name[:-4]}.xml"
@@ -55,16 +55,22 @@ if st.button('Select Thesis'):
     abstract = purl_xml.find("mods:mods/mods:abstract", namespaces=ns)
     st.write(abstract.text)
     st.subheader("Summary of Abstract")
-    st.write(summary(abstract.text)[0].get("summary_text"))
+#    st.write(summary(abstract.text)[0].get("summary_text))
+    # st.write(summary(thesis))
+    st.write(NER(thesis.read_text()))
 
 st.sidebar.subheader("FAST Topics")
 topic_input = st.sidebar.text_input("Enter topic terms")
 if topic_input is not None:
     topic_output = search_fast(topic_input, fast_topics)
-    geo_output = search_fast(topic_input, fast_geo)
-    chron_output = search_fast(topic_input, fast_chronology)
     st.sidebar.multiselect(options=topic_output, label='Select FAST Topics')
+geo_input = st.sidebar.text_input("Enter geographic terms")
+if geo_input is not None:
+    geo_output = search_fast(topic_input, fast_geo)
     st.sidebar.multiselect(options=geo_output, label='Select FAST Geographic')
+cron_input = st.sidebar.text_input("Enter time period")
+if cron_input is not None:
+    chron_output = search_fast(topic_input, fast_chronology)
     st.sidebar.multiselect(options=chron_output, label='Select FAST Chronology')
     # st.text(topic_output)
 
