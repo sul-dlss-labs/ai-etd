@@ -9,7 +9,7 @@ import requests
 from hugs import NER, SUMMARIZER
 
 
-etds = pathlib.Path("../../tmp/etds/")
+etds = pathlib.Path("../../etds/")
 etd_paths = [etd for etd in etds.iterdir()]
 ns = { "mods": "http://www.loc.gov/mods/v3" }
 
@@ -51,13 +51,32 @@ if st.button('Random Thesis'):
     title = purl_xml.find("mods:mods/mods:titleInfo/mods:title", namespaces=ns)
     st.subheader(f"{title.text}")
     st.write(f"Thesis Selected {position} Druid: {thesis.name}\n{purl_url}")
+    names = purl_xml.findall("mods:mods/mods:name", namespaces=ns)
+    for name in names:
+        namePart = name.find("mods:namePart", namespaces=ns)
+        role = name.find("mods:role/mods:roleTerm", namespaces=ns)
+        if role is not None:
+            st.write(f"\t{namePart.text}, {role.text}")
+        else:
+            st.write(f"\t{namePart.text}")
     st.subheader("Abstract")
     abstract = purl_xml.find("mods:mods/mods:abstract", namespaces=ns)
     st.write(abstract.text)
-    st.subheader("Summary of Abstract")
+    st.subheader("Named Entities")
 #    st.write(summary(abstract.text)[0].get("summary_text))
     # st.write(summary(thesis))
-    st.write(NER(thesis.read_text()))
+    # st.write(NER(thesis.read_text()))
+    for row in NER(abstract.text):
+        if row['entity'].startswith("I-LOC"):
+            st.subheader(f"FAST Geo results for {row['word']}")
+            geo_etd = search_fast(row['word'], fast_geo)
+            st.write(geo_etd)
+        elif row['entity'].startswith("I-MISC") or  row['entity'].startswith("I-ORG"):
+            st.subheader(f"FAST Topic results for {row['word']}, entity type {row['entity']}")
+            topic_etd = search_fast(row['word'], fast_topics)
+            st.write(topic_etd)
+        else:
+            st.write(row)    
 
 st.sidebar.subheader("FAST Topics")
 topic_input = st.sidebar.text_input("Enter topic terms")
@@ -66,7 +85,7 @@ if topic_input is not None:
     st.sidebar.multiselect(options=topic_output, label='Select FAST Topics')
 geo_input = st.sidebar.text_input("Enter geographic terms")
 if geo_input is not None:
-    geo_output = search_fast(topic_input, fast_geo)
+    geo_output = search_fast(geo_input, fast_geo)
     st.sidebar.multiselect(options=geo_output, label='Select FAST Geographic')
 cron_input = st.sidebar.text_input("Enter time period")
 if cron_input is not None:
