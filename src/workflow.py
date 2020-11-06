@@ -6,6 +6,7 @@ import pandas as pd
 import random
 import re
 import requests
+from nltk.corpus import stopwords
 from stemming.porter2 import stem
 from transformers import pipeline
 
@@ -18,6 +19,7 @@ for fast_df in [FAST_GEO, FAST_TOPICS]:
 
 NER = pipeline("ner")
 special_char_re = re.compile(r'[^a-zA-Z]')
+stop_words_list = stopwords.words('english')
 
 def cleanup(term: str) -> str:
     cleaned = []
